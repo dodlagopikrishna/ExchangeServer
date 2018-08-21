@@ -716,6 +716,9 @@ static json_t *get_depth(market_t *market, size_t limit)
 {
     mpd_t *price = mpd_new(&mpd_ctx);
     mpd_t *amount = mpd_new(&mpd_ctx);
+    mpd_t *sum = mpd_new(&mpd_ctx);
+ 
+    mpd_copy(sum, mpd_zero, &mpd_ctx);
 
     json_t *asks = json_array();
     skiplist_iter *iter = skiplist_get_iterator(market->asks);
@@ -734,12 +737,16 @@ static json_t *get_depth(market_t *market, size_t limit)
                 break;
             }
         }
-        json_t *info = json_array();
-        json_array_append_new_mpd(info, price);
-        json_array_append_new_mpd(info, amount);
+        mpd_add(sum, sum, amount, &mpd_ctx);
+        json_t *info = json_object();
+        json_object_set_new_mpd(info, "price", price);
+        json_object_set_new_mpd(info, "amount", amount);
+        json_object_set_new_mpd(info, "sum", sum);        
         json_array_append_new(asks, info);
     }
     skiplist_release_iterator(iter);
+ 
+    mpd_copy(sum, mpd_zero, &mpd_ctx);
 
     json_t *bids = json_array();
     iter = skiplist_get_iterator(market->bids);
@@ -758,15 +765,18 @@ static json_t *get_depth(market_t *market, size_t limit)
                 break;
             }
         }
-        json_t *info = json_array();
-        json_array_append_new_mpd(info, price);
-        json_array_append_new_mpd(info, amount);
+        mpd_add(sum, sum, amount, &mpd_ctx);
+        json_t *info = json_object();
+        json_object_set_new_mpd(info, "price", price);
+        json_object_set_new_mpd(info, "amount", amount);
+        json_object_set_new_mpd(info, "sum", sum);
         json_array_append_new(bids, info);
     }
     skiplist_release_iterator(iter);
 
     mpd_del(price);
     mpd_del(amount);
+    mpd_del(sum);
 
     json_t *result = json_object();
     json_object_set_new(result, "asks", asks);
@@ -781,6 +791,9 @@ static json_t *get_depth_merge(market_t* market, size_t limit, mpd_t *interval)
     mpd_t *r = mpd_new(&mpd_ctx);
     mpd_t *price = mpd_new(&mpd_ctx);
     mpd_t *amount = mpd_new(&mpd_ctx);
+    mpd_t *sum = mpd_new(&mpd_ctx);
+
+    mpd_copy(sum, mpd_zero, &mpd_ctx);
 
     json_t *asks = json_array();
     skiplist_iter *iter = skiplist_get_iterator(market->asks);
@@ -803,12 +816,16 @@ static json_t *get_depth_merge(market_t* market, size_t limit, mpd_t *interval)
                 break;
             }
         }
-        json_t *info = json_array();
-        json_array_append_new_mpd(info, price);
-        json_array_append_new_mpd(info, amount);
+        mpd_add(sum, sum, amount, &mpd_ctx);
+        json_t *info = json_object();
+        json_object_set_new_mpd(info, "price", price);
+        json_object_set_new_mpd(info, "amount", amount);
+        json_object_set_new_mpd(info, "sum", sum);        
         json_array_append_new(asks, info);
     }
     skiplist_release_iterator(iter);
+
+    mpd_copy(sum, mpd_zero, &mpd_ctx);
 
     json_t *bids = json_array();
     iter = skiplist_get_iterator(market->bids);
@@ -828,10 +845,11 @@ static json_t *get_depth_merge(market_t* market, size_t limit, mpd_t *interval)
                 break;
             }
         }
-
-        json_t *info = json_array();
-        json_array_append_new_mpd(info, price);
-        json_array_append_new_mpd(info, amount);
+        mpd_add(sum, sum, amount, &mpd_ctx);
+        json_t *info = json_object();
+        json_object_set_new_mpd(info, "price", price);
+        json_object_set_new_mpd(info, "amount", amount);
+        json_object_set_new_mpd(info, "sum", sum);
         json_array_append_new(bids, info);
     }
     skiplist_release_iterator(iter);
@@ -840,6 +858,7 @@ static json_t *get_depth_merge(market_t* market, size_t limit, mpd_t *interval)
     mpd_del(r);
     mpd_del(price);
     mpd_del(amount);
+    mpd_del(sum);
 
     json_t *result = json_object();
     json_object_set_new(result, "asks", asks);

@@ -1,6 +1,6 @@
-# ViaBTC Exchange Server
+# Exchange Server
 
-ViaBTC Exchange Server is a trading backend with high-speed performance, designed for cryptocurrency exchanges. It can support up to 10000 trades every second and real-time user/market data notification through websocket.
+Exchange Server is a trading backend with high-speed performance, designed for cryptocurrency exchanges. It can support up to 10000 trades every second and real-time user/market data notification through websocket.
 
 ## Architecture
 
@@ -114,7 +114,7 @@ $ make
 $ sudo make install
 
 
-$ git clone git clone https://gopi_dodla@bitbucket.org/gopi_dodla/exchangeserver.git
+$ git clone https://gopi_dodla@bitbucket.org/gopi_dodla/exchangeserver.git
 
 $ cd exchangeserver
 

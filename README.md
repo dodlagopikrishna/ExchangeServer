@@ -93,9 +93,79 @@ The internal authorization endpoint is defined by the `auth_url` setting in the 
 
 Example response: `{"code": 0, "message": null, "data": {"user_id": 1}}`
 
-## Donation
+## Exchange Server - Installation 
 
-* BTC: 14x3GrEoMLituT6vF2wcEbqMAxCvt2724s
-* BCC: 1364ZurPv8uTgnFr1uqowJDFF15aNFemkf
-* ETH: 0xA2913166AE0689C07fCB5C423559239bB2814b6D
+$ sudo apt install -y libev-dev libjansson-dev libmpdec-dev libmysqlclient-dev libcurl4-gnutls-dev libldap2-dev libgss-dev librtmp-dev libsasl2-dev 
+
+//librdkafka: 0.11.3+; DO NOT INSTALL BY APT: version too old (0.8.x);
+
+//if you do, remove them by: sudo apt remove librdkafka1 librdkafka-dev
+
+$ wget https://github.com/edenhill/librdkafka/archive/v0.11.3.tar.gz -O librdkafka-0.11.3.tar.gz
+
+$ tar zxf librdkafka-0.11.3.tar.gz
+
+$ cd librdkafka-0.11.3
+
+$ ./configure
+
+$ make
+
+$ sudo make install
+
+
+$ git clone git clone https://gopi_dodla@bitbucket.org/gopi_dodla/exchangeserver.git
+
+$ cd exchangeserver
+
+$ make -C depends/hiredis
+
+$ make -C network
+
+$ sudo apt install -y libssl-dev
+
+$ vi utils/makefile #modify INCS
+
+//INCS = -I ../network -I ../depends
+
+$ make -C utils
+
+$ vi accesshttp/makefile #modify INCS & LIBS
+
+//INCS = -I ../network -I ../utils -I ../depends
+
+//LIBS = -L ../utils -lutils -L ../network -lnetwork -L ../depends/hiredis -Wl,-Bstatic -lev -ljansson -lmpdec -lrdkafka -lz -lssl -lcrypto -lhiredis -lcurl -Wl,-Bdynamic -lm -lpthread -ldl -lssl -lldap -llber -lgss -lgnutls -lidn -lnettle -lrtmp -lsasl2 -lmysqlclient
+
+$ make -C accesshttp
+
+$ vi accessws/makefile
+
+{modify INCS and LIBS like accesshttp/makefile}
+
+$ make -C accessws
+
+vi alertcenter/makefile
+
+{modify INCS and LIBS like accesshttp/makefile}
+
+$ make -C alertcenter
+
+$ vi marketprice/makefile
+
+{modify INCS and LIBS like accesshttp/makefile}
+
+$ make -C marketprice
+
+$ vi matchengine/makefile
+
+{modify INCS and LIBS like accesshttp/makefile}
+
+$ make -C matchengine
+
+$ vi readhistory/makefile
+
+{modify INCS and LIBS like accesshttp/makefile}
+
+$ make -C readhistory
+
 

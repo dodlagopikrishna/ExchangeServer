@@ -492,6 +492,7 @@ static int market_update(const char *market, double timestamp, mpd_t *price, mpd
     kline_info_update(kinfo, price, amount);
     add_update(info, KLINE_DAY, time_day);
 
+
     // update last
     mpd_copy(info->last, price, &mpd_ctx);
 
@@ -962,6 +963,7 @@ json_t *get_market_status(const char *market, int period)
         kinfo = kline_info_new(mpd_zero);
 
     json_t *result = json_object();
+    json_object_set_new(result, "market", json_string(market));
     json_object_set_new(result, "period", json_integer(period));
     json_object_set_new_mpd(result, "last", info->last);
     json_object_set_new_mpd(result, "open", kinfo->open);
@@ -973,6 +975,26 @@ json_t *get_market_status(const char *market, int period)
 
     kline_info_free(kinfo);
 
+    return result;
+}
+
+json_t *get_market_all_status(int period)
+{
+    json_t *r = send_market_list_req();
+    if (r == NULL) {
+        log_error("get market list fail");
+        return NULL;
+    }
+    json_t *result = json_array();
+    for (size_t i = 0; i < json_array_size(r); ++i) {
+        json_t *item = json_array_get(r, i);
+        const char *market = json_string_value(json_object_get(item, "name"));
+        json_t *marketstatus = get_market_status(market, period);
+        json_array_append_new(result, marketstatus);
+    }    
+
+    json_decref(r);
+    
     return result;
 }
 

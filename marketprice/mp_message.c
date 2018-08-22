@@ -1038,15 +1038,15 @@ json_t *get_market_status_today(const char *market)
 
 static int append_kinfo(json_t *result, time_t timestamp, struct kline_info *kinfo, const char *market)
 {
-    json_t *unit = json_array();
-    json_array_append_new(unit, json_integer(timestamp));
-    json_array_append_new_mpd(unit, kinfo->open);
-    json_array_append_new_mpd(unit, kinfo->close);
-    json_array_append_new_mpd(unit, kinfo->high);
-    json_array_append_new_mpd(unit, kinfo->low);
-    json_array_append_new_mpd(unit, kinfo->volume);
-    json_array_append_new_mpd(unit, kinfo->deal);
-    json_array_append_new(unit, json_string(market));
+    json_t *unit = json_object();
+    json_object_set_new(unit, "timestamp", json_integer(timestamp));
+    json_object_set_new_mpd(unit, "open", kinfo->open);
+    json_object_set_new_mpd(unit, "close", kinfo->close);
+    json_object_set_new_mpd(unit, "high", kinfo->high);
+    json_object_set_new_mpd(unit, "low", kinfo->low);
+    json_object_set_new_mpd(unit, "volume", kinfo->volume);
+    json_object_set_new_mpd(unit, "deal", kinfo->deal);
+    json_object_set_new(unit, "market", json_string(market));
     json_array_append_new(result, unit);
 
     return 0;

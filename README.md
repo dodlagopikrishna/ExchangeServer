@@ -169,3 +169,10 @@ $ vi readhistory/makefile
 $ make -C readhistory
 
 
+# Websocket configuration
+
+Nginx server is required to access websocket server.
+
+Place the accessws.conf file in the Nginx configuration directory /etc/nginx/conf.d/  to access websocket.
+
+The websocket is configured to accessible on the port 8090.

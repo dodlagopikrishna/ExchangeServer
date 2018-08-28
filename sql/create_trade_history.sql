@@ -86,3 +86,10 @@ CREATE TABLE `user_deal_history_example` (
     `deal_fee`      DECIMAL(30,16) NOT NULL,
     INDEX `idx_user_market` (`user_id`, `market`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- to store the cancelled order info
+CREATE TABLE `cancelled_orders` (
+    `id`            BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `user_id`       INT UNSIGNED NOT NULL,
+    `order_details`        TEXT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

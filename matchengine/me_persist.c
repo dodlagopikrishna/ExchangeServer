@@ -220,6 +220,36 @@ int update_slice_history(MYSQL *conn, time_t end)
     return 0;
 }
 
+
+int push_cancelled_order_to_db(order_t *order)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    sds sql = sdsempty();
+    json_t *order_details = get_order_info(order);
+    char *order_details_json = json_dumps(order_details, 0);
+    sql = sdscatprintf(sql, "INSERT INTO `cancelled_orders` (`id`, `user_id`, `order_details`) VALUES (NULL, %"PRIu32", '%s')",
+            order->user_id, order_details_json);
+    log_trace("exec sql: %s", sql);
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret < 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        goto cleanup;
+    }
+    mysql_close(conn);
+    sdsfree(sql);
+    json_decref(order_details);
+    free(order_details_json);
+
+    return 0;
+
+cleanup:
+    mysql_close(conn);
+    sdsfree(sql);
+    json_decref(order_details);
+    free(order_details_json);
+    return ret;
+}
+
 int dump_to_db(time_t timestamp)
 {
     MYSQL *conn = mysql_connect(&settings.db_log);

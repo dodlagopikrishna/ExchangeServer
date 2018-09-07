@@ -16,6 +16,8 @@ int dump_to_db(time_t timestamp);
 int make_slice(time_t timestamp);
 int clear_slice(time_t timestamp);
 int push_cancelled_order_to_db(order_t *order);
+int load_assets_from_db(void);
+int load_markets_from_db(void);
 
 # endif
 

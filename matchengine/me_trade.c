@@ -49,7 +49,6 @@ int init_trade(void)
 
         dict_add(dict_market, settings.markets[i].name, m);
     }
-
     return 0;
 }
 

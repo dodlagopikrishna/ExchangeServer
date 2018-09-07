@@ -444,3 +444,95 @@ int init_persist(void)
     return 0;
 }
 
+int load_assets_from_db(void)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    if (conn == NULL) {
+        log_error("connect mysql fail");
+        log_stderr("connect mysql fail");
+        return -__LINE__;
+    }
+
+    sds sql = sdsempty();
+    sql = sdscatprintf(sql, "select `name`,`prec_save`,`prec_show` from `exchange_assets`");
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret != 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        log_stderr("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        sdsfree(sql);
+        mysql_close(conn);
+        return -__LINE__;
+    }
+    sdsfree(sql);
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    size_t num_rows = mysql_num_rows(result);
+    settings.asset_num = num_rows;
+    if (num_rows < 1) {
+        mysql_free_result(result);
+        mysql_close(conn);
+        return 0;
+    }
+
+    MYSQL_ROW row;
+    settings.assets = malloc(sizeof(struct asset) * settings.asset_num);
+
+    for (size_t i = 0; i < settings.asset_num; ++i) {
+        row = mysql_fetch_row(result);
+        settings.assets[i].name = row[0];
+        settings.assets[i].prec_save = atoi(row[1]);
+        settings.assets[i].prec_show = atoi(row[2]);
+    }
+    mysql_free_result(result);
+    mysql_close(conn);
+    return 0;
+}
+
+int load_markets_from_db(void)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    if (conn == NULL) {
+        log_error("connect mysql fail");
+        log_stderr("connect mysql fail");
+        return -__LINE__;
+    }
+
+    sds sql = sdsempty();
+    sql = sdscatprintf(sql, "select `market_name`,`stock_name`,`stock_prec`,`money_name`,`money_prec`,`fee_prec`,`min_amount` from `exchange_markets`");
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret != 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        log_stderr("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        sdsfree(sql);
+        mysql_close(conn);
+        return -__LINE__;
+    }
+    sdsfree(sql);
+
+    MYSQL_RES *result = mysql_store_result(conn);
+    size_t num_rows = mysql_num_rows(result);
+    settings.market_num = num_rows;
+    if (num_rows < 1) {
+        mysql_free_result(result);
+        mysql_close(conn);
+        return 0;
+    }
+
+    MYSQL_ROW row;
+    settings.markets = malloc(sizeof(struct market) * settings.market_num);
+    
+    for (size_t i = 0; i < settings.market_num; ++i) {
+        row = mysql_fetch_row(result);
+        settings.markets[i].name = row[0];
+        settings.markets[i].stock = row[1];
+        settings.markets[i].stock_prec = atoi(row[2]);
+        settings.markets[i].money = row[3];
+        settings.markets[i].money_prec = atoi(row[4]);
+        settings.markets[i].fee_prec = atoi(row[5]);
+        settings.markets[i].min_amount = decimal(row[6],0);
+    }
+    mysql_free_result(result);
+    mysql_close(conn);
+
+    return 0;
+}

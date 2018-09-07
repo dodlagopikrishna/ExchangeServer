@@ -7,6 +7,7 @@
 
 struct settings settings;
 
+/*
 static int load_assets(json_t *root, const char *key)
 {
     json_t *node = json_object_get(root, key);
@@ -62,7 +63,7 @@ static int load_markets(json_t *root, const char *key)
 
     return 0;
 }
-
+*/
 static int read_config_from_json(json_t *root)
 {
     int ret;
@@ -106,6 +107,7 @@ static int read_config_from_json(json_t *root)
         printf("load history db config fail: %d\n", ret);
         return -__LINE__;
     }
+/*    
     ret = load_assets(root, "assets");
     if (ret < 0) {
         printf("load assets config fail: %d\n", ret);
@@ -116,6 +118,7 @@ static int read_config_from_json(json_t *root)
         printf("load markets config fail: %d\n", ret);
         return -__LINE__;
     }
+*/
     ret = read_cfg_str(root, "brokers", &settings.brokers, NULL);
     if (ret < 0) {
         printf("load brokers fail: %d\n", ret);
@@ -142,7 +145,7 @@ static int read_config_from_json(json_t *root)
     return 0;
 }
 
-int init_config(const char *path)
+int  init_config(const char *path)
 {
     json_error_t error;
     json_t *root = json_load_file(path, 0, &error);

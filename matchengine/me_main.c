@@ -79,6 +79,17 @@ int main(int argc, char *argv[])
     if (ret < 0) {
         error(EXIT_FAILURE, errno, "load config fail: %d", ret);
     }
+
+    ret = load_assets_from_db();
+    if (ret < 0) {
+        error(EXIT_FAILURE, errno, "init assets fail: %d", ret);
+    }
+
+    ret = load_markets_from_db();
+    if (ret < 0) {
+        error(EXIT_FAILURE, errno, "init markets fail: %d", ret);
+    }
+
     ret = init_process();
     if (ret < 0) {
         error(EXIT_FAILURE, errno, "init process fail: %d", ret);

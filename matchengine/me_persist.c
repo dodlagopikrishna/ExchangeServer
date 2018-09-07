@@ -536,3 +536,130 @@ int load_markets_from_db(void)
 
     return 0;
 }
+
+int add_asset(const char *asset_name, uint64_t prec_save, uint64_t prec_show)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    if (conn == NULL) {
+        log_error("connect mysql fail");
+        log_stderr("connect mysql fail");
+        return -__LINE__;
+    }
+    sds sql = sdsempty();
+    sql = sdscatprintf(sql, "insert into `exchange_assets`(`name`,`prec_save`,`prec_show`) values ('%s',%"PRIu64",%"PRIu64")",asset_name,prec_save,prec_show);
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret < 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        log_stderr("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        sdsfree(sql);
+        mysql_close(conn);
+        return -__LINE__;
+    }
+    sdsfree(sql);
+    mysql_close(conn);
+
+    free(settings.assets);
+
+    ret = load_assets_from_db();
+    if (ret < 0) {
+        error(EXIT_FAILURE, errno, "init assets fail: %d", ret);
+    }
+
+    return 0;
+}
+
+int delete_asset(const char *asset_name)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    if (conn == NULL) {
+        log_error("connect mysql fail");
+        log_stderr("connect mysql fail");
+        return -__LINE__;
+    }
+
+    sds sql = sdsempty();
+    sql = sdscatprintf(sql, "delete from `exchange_assets` where `name` = '%s'",asset_name);
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret < 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        log_stderr("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        sdsfree(sql);
+        mysql_close(conn);
+        return -__LINE__;
+    }
+    sdsfree(sql);
+    mysql_close(conn);
+
+    free(settings.assets);
+
+    ret = load_assets_from_db();
+    if (ret < 0) {
+        error(EXIT_FAILURE, errno, "init assets fail: %d", ret);
+    }
+
+    return 0;
+}
+
+int add_market(const char *market_name, const char *stock_name, uint64_t stock_prec, const char *money_name, uint64_t money_prec, uint64_t fee_prec, const char *min_amount)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    if (conn == NULL) {
+        log_error("connect mysql fail");
+        log_stderr("connect mysql fail");
+        return -__LINE__;
+    }
+
+    sds sql = sdsempty();
+    sql = sdscatprintf(sql, "insert into `exchange_markets`(`market_name`,`stock_name`,`stock_prec`,`money_name`,`money_prec`,`fee_prec`,`min_amount`) values ('%s','%s',%"PRIu64",'%s',%"PRIu64",%"PRIu64",'%s')",market_name,stock_name,stock_prec,money_name,money_prec,fee_prec,min_amount);
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret < 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        log_stderr("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        sdsfree(sql);
+        mysql_close(conn);
+        return -__LINE__;
+    }
+    sdsfree(sql);
+    mysql_close(conn);
+    
+    free(settings.markets);
+
+    ret = load_markets_from_db();
+    if (ret < 0) {
+        error(EXIT_FAILURE, errno, "init markets fail: %d", ret);
+    }
+
+    return 0;
+}
+
+int delete_market(const char *market_name)
+{
+    MYSQL *conn = mysql_connect(&settings.db_history);
+    if (conn == NULL) {
+        log_error("connect mysql fail");
+        log_stderr("connect mysql fail");
+        return -__LINE__;
+    }
+
+    sds sql = sdsempty();
+    sql = sdscatprintf(sql, "delete from `exchange_markets` where `market_name` = '%s'",market_name);
+    int ret = mysql_real_query(conn, sql, sdslen(sql));
+    if (ret < 0) {
+        log_error("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        log_stderr("exec sql: %s fail: %d %s", sql, mysql_errno(conn), mysql_error(conn));
+        sdsfree(sql);
+        mysql_close(conn);
+        return -__LINE__;
+    }
+    sdsfree(sql);
+    mysql_close(conn);
+
+    free(settings.markets);
+
+    ret = load_markets_from_db();
+    if (ret < 0) {
+        error(EXIT_FAILURE, errno, "init markets fail: %d", ret);
+    }
+
+    return 0;
+}

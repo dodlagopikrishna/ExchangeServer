@@ -1033,6 +1033,113 @@ invalid_argument:
     return reply_error_invalid_argument(ses, pkg);
 }
 
+static int on_cmd_asset_add(nw_ses *ses, rpc_pkg *pkg, json_t *params)
+{
+    if (json_array_size(params) != 3)
+        return reply_error_invalid_argument(ses, pkg);
+
+    // asset name
+    if (!json_is_string(json_array_get(params, 0)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *asset_name = json_string_value(json_array_get(params, 0));
+
+    // prec_save
+    if (!json_is_integer(json_array_get(params, 1)))
+        return reply_error_invalid_argument(ses, pkg);
+    uint64_t prec_save = json_integer_value(json_array_get(params, 1));
+
+    // prec_show
+    if (!json_is_integer(json_array_get(params, 2)))
+        return reply_error_invalid_argument(ses, pkg);
+    uint64_t prec_show = json_integer_value(json_array_get(params, 2));
+
+    add_asset(asset_name, prec_save, prec_show);
+    
+    return reply_result(ses, pkg, NULL);
+}
+
+static int on_cmd_asset_delete(nw_ses *ses, rpc_pkg *pkg, json_t *params)
+{
+    if (json_array_size(params) != 1)
+        return reply_error_invalid_argument(ses, pkg);
+
+    // asset name
+    if (!json_is_string(json_array_get(params, 0)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *asset_name = json_string_value(json_array_get(params, 0));
+
+    delete_asset(asset_name);
+    
+    return reply_result(ses, pkg, NULL);
+}
+
+static int on_cmd_market_add(nw_ses *ses, rpc_pkg *pkg, json_t *params)
+{
+    if (json_array_size(params) != 7)
+        return reply_error_invalid_argument(ses, pkg);
+
+    // market name
+    if (!json_is_string(json_array_get(params, 0)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *market_name = json_string_value(json_array_get(params, 0));
+
+    // stock name
+    if (!json_is_string(json_array_get(params, 1)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *stock_name = json_string_value(json_array_get(params, 1));
+
+    // stock_prec
+    if (!json_is_integer(json_array_get(params, 2)))
+        return reply_error_invalid_argument(ses, pkg);
+    uint64_t stock_prec = json_integer_value(json_array_get(params, 2));
+
+    // money name
+    if (!json_is_string(json_array_get(params, 3)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *money_name = json_string_value(json_array_get(params, 3));
+
+    // money_prec
+    if (!json_is_integer(json_array_get(params, 4)))
+        return reply_error_invalid_argument(ses, pkg);
+    uint64_t money_prec = json_integer_value(json_array_get(params, 4));
+
+    // fee_prec
+    if (!json_is_integer(json_array_get(params, 5)))
+        return reply_error_invalid_argument(ses, pkg);
+    uint64_t fee_prec = json_integer_value(json_array_get(params, 5));
+
+    // min amount
+    if (!json_is_string(json_array_get(params, 6)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *min_amount = json_string_value(json_array_get(params, 6));
+
+    add_market(market_name, stock_name, stock_prec, money_name, money_prec, fee_prec, min_amount);
+    
+    return reply_result(ses, pkg, NULL);
+}
+
+static int on_cmd_market_delete(nw_ses *ses, rpc_pkg *pkg, json_t *params)
+{
+    if (json_array_size(params) != 1)
+        return reply_error_invalid_argument(ses, pkg);
+
+    // market name
+    if (!json_is_string(json_array_get(params, 0)))
+        return reply_error_invalid_argument(ses, pkg);
+
+    const char *market_name = json_string_value(json_array_get(params, 0));
+
+    delete_market(market_name);
+    
+    return reply_result(ses, pkg, NULL);
+}
+
 static void svr_on_recv_pkg(nw_ses *ses, rpc_pkg *pkg)
 {
     json_t *params = json_loadb(pkg->body, pkg->body_size, 0, NULL);
@@ -1158,6 +1265,35 @@ static void svr_on_recv_pkg(nw_ses *ses, rpc_pkg *pkg)
             log_error("on_cmd_market_summary%s fail: %d", params_str, ret);
         }
         break;
+    case CMD_ASSET_ADD:
+        log_trace("from: %s cmd asset add, sequence: %u params: %s", nw_sock_human_addr(&ses->peer_addr), pkg->sequence, params_str);
+        ret = on_cmd_asset_add(ses, pkg, params);
+        if (ret < 0) {
+            log_error("on_cmd_asset_add%s fail: %d", params_str, ret);
+        }
+        break;
+    case CMD_ASSET_DELETE:
+        log_trace("from: %s cmd asset delete, sequence: %u params: %s", nw_sock_human_addr(&ses->peer_addr), pkg->sequence, params_str);
+        ret = on_cmd_asset_delete(ses, pkg, params);
+        if (ret < 0) {
+            log_error("on_cmd_asset_delete%s fail: %d", params_str, ret);
+        }
+        break;
+    case CMD_MARKET_ADD:
+        log_trace("from: %s cmd market add, sequence: %u params: %s", nw_sock_human_addr(&ses->peer_addr), pkg->sequence, params_str);
+        ret = on_cmd_market_add(ses, pkg, params);
+        if (ret < 0) {
+            log_error("on_cmd_market_add%s fail: %d", params_str, ret);
+        }
+        break;
+    case CMD_MARKET_DELETE:
+        log_trace("from: %s cmd market delete, sequence: %u params: %s", nw_sock_human_addr(&ses->peer_addr), pkg->sequence, params_str);
+        ret = on_cmd_market_delete(ses, pkg, params);
+        if (ret < 0) {
+            log_error("on_cmd_market_delete%s fail: %d", params_str, ret);
+        }
+        break;
+
     default:
         log_error("from: %s unknown command: %u", nw_sock_human_addr(&ses->peer_addr), pkg->command);
         break;

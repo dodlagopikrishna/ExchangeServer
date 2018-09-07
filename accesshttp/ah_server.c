@@ -286,6 +286,10 @@ static int init_methods_handler(void)
     ERR_RET_LN(add_handler("market.list", matchengine, CMD_MARKET_LIST));
     ERR_RET_LN(add_handler("market.summary", matchengine, CMD_MARKET_SUMMARY));
 
+    ERR_RET_LN(add_handler("asset.add", matchengine, CMD_ASSET_ADD));
+    ERR_RET_LN(add_handler("asset.delete", matchengine, CMD_ASSET_DELETE));
+    ERR_RET_LN(add_handler("market.add", matchengine, CMD_MARKET_ADD));
+    ERR_RET_LN(add_handler("market.delete", matchengine, CMD_MARKET_DELETE));
     return 0;
 }
 

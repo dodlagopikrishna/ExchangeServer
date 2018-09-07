@@ -12,6 +12,8 @@
 # define CMD_BALANCE_HISTORY        103
 # define CMD_ASSET_LIST             104
 # define CMD_ASSET_SUMMARY          105
+# define CMD_ASSET_ADD              106
+# define CMD_ASSET_DELETE           107
 
 // trade
 # define CMD_ORDER_PUT_LIMIT        201
@@ -35,6 +37,8 @@
 # define CMD_MARKET_LIST            307
 # define CMD_MARKET_SUMMARY         308
 # define CMD_MARKET_ALL_STATUS      309
+# define CMD_MARKET_ADD             310
+# define CMD_MARKET_DELETE          311
 
 # endif
 

@@ -479,7 +479,7 @@ int load_assets_from_db(void)
 
     for (size_t i = 0; i < settings.asset_num; ++i) {
         row = mysql_fetch_row(result);
-        settings.assets[i].name = row[0];
+        settings.assets[i].name = strdup(row[0]);
         settings.assets[i].prec_save = atoi(row[1]);
         settings.assets[i].prec_show = atoi(row[2]);
     }
@@ -523,10 +523,10 @@ int load_markets_from_db(void)
     
     for (size_t i = 0; i < settings.market_num; ++i) {
         row = mysql_fetch_row(result);
-        settings.markets[i].name = row[0];
-        settings.markets[i].stock = row[1];
+        settings.markets[i].name = strdup(row[0]);
+        settings.markets[i].stock = strdup(row[1]);
         settings.markets[i].stock_prec = atoi(row[2]);
-        settings.markets[i].money = row[3];
+        settings.markets[i].money = strdup(row[3]);
         settings.markets[i].money_prec = atoi(row[4]);
         settings.markets[i].fee_prec = atoi(row[5]);
         settings.markets[i].min_amount = decimal(row[6],0);

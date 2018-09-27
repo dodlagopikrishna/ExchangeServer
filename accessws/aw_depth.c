@@ -104,10 +104,13 @@ static json_t *get_list_diff(json_t *list1, json_t *list2, uint32_t limit, int s
     size_t list1_pos = 0;
     size_t list2_pos = 0;
 
+    const char *pricekey = "price";
+    const char *amountkey = "amount";
+
     while (list1_pos < list1_size && list2_pos < list2_size) {
         json_t *unit1 = json_array_get(list1, list1_pos);
-        const char *unit1_price  = json_string_value(json_array_get(unit1, 0));
-        const char *unit1_amount = json_string_value(json_array_get(unit1, 1));
+        const char *unit1_price  = json_string_value(json_object_get(unit1, pricekey));
+        const char *unit1_amount = json_string_value(json_object_get(unit1, amountkey));
         if (unit1_price == NULL || unit1_amount == NULL)
             goto error;
         price1 = decimal(unit1_price, 0);
@@ -116,8 +119,8 @@ static json_t *get_list_diff(json_t *list1, json_t *list2, uint32_t limit, int s
             goto error;
 
         json_t *unit2 = json_array_get(list2, list2_pos);
-        const char *unit2_price  = json_string_value(json_array_get(unit2, 0));
-        const char *unit2_amount = json_string_value(json_array_get(unit2, 1));
+        const char *unit2_price  = json_string_value(json_object_get(unit2, pricekey));
+        const char *unit2_amount = json_string_value(json_object_get(unit2, amountkey));
         if (unit2_price == NULL || unit2_amount == NULL)
             goto error;
         price2 = decimal(unit2_price, 0);
@@ -155,8 +158,8 @@ static json_t *get_list_diff(json_t *list1, json_t *list2, uint32_t limit, int s
 
     while (list2_size < limit && list1_pos < list1_size) {
         json_t *unit = json_array_get(list1, list1_pos);
-        const char *price = json_string_value(json_array_get(unit, 0));
-        const char *amount = json_string_value(json_array_get(unit, 1));
+        const char *price = json_string_value(json_object_get(unit, pricekey));
+        const char *amount = json_string_value(json_object_get(unit, amountkey));
         if (price == NULL || amount == NULL)
             goto error;
         json_t *new = json_array();
@@ -197,6 +200,7 @@ static json_t *get_depth_diff(json_t *first, json_t *second, uint32_t limit)
     json_t *bids = get_list_diff(json_object_get(first, "bids"), json_object_get(second, "bids"), limit, -1);
     if (asks == NULL && bids == NULL)
         return NULL;
+	
     json_t *diff = json_object();
     if (asks)
         json_object_set_new(diff, "asks", asks);
@@ -238,9 +242,8 @@ static int on_market_depth_reply(struct state_data *state, json_t *result)
     }
 
     json_t *diff = get_depth_diff(val->last, result, key->limit);
-    if (diff == NULL) {
+    if (diff == NULL)
         return 0;
-    }
 
     json_decref(val->last);
     val->last = result;

@@ -929,6 +929,11 @@ static struct kline_info *get_last_kline(dict_t *dict, time_t start, time_t end,
 json_t *get_market_status(const char *market, int period)
 {
     struct market_info *info = market_query(market);
+    if (info == NULL){
+        free(dict_market);
+        init_market();
+    }
+
     if (info == NULL)
         return NULL;
 

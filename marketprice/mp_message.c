@@ -8,6 +8,7 @@
 # include "mp_config.h"
 # include "mp_message.h"
 # include "mp_kline.h"
+# include "string.h"
 
 struct market_info {
     char   *name;
@@ -426,6 +427,7 @@ static time_t get_day_start(time_t timestamp)
 
 static int market_update(const char *market, double timestamp, mpd_t *price, mpd_t *amount, int side, uint64_t id)
 {
+    log_debug("Updating market...");
     struct market_info *info = market_query(market);
     if (info == NULL) {
         info = create_market(market);
@@ -492,6 +494,7 @@ static int market_update(const char *market, double timestamp, mpd_t *price, mpd
     kline_info_update(kinfo, price, amount);
     add_update(info, KLINE_DAY, time_day);
 
+    log_debug("KLine info updated successfully......");
 
     // update last
     mpd_copy(info->last, price, &mpd_ctx);
@@ -933,7 +936,6 @@ json_t *get_market_status(const char *market, int period)
         free(dict_market);
         init_market();
     }
-
     if (info == NULL)
         return NULL;
 
@@ -983,6 +985,66 @@ json_t *get_market_status(const char *market, int period)
     return result;
 }
 
+json_t *get_market_status_all(const char *market,const char *marketstock,const char *marketmoney, int period)
+{   
+    struct market_info *info = market_query(market);
+    if (info == NULL){
+        free(dict_market);
+        init_market();
+    }
+    if (info == NULL)
+        return NULL;
+    
+    struct kline_info *kinfo = NULL;
+    time_t now = time(NULL);
+    time_t start = now - period;
+    time_t start_min = start / 60 * 60 + 60;
+    
+    for (time_t timestamp = start; timestamp < start_min; timestamp++) {
+        dict_entry *entry = dict_find(info->sec, &timestamp);
+        if (!entry)
+            continue;
+        struct kline_info *sinfo = entry->val;
+        if (kinfo == NULL) {
+            kinfo = kline_info_new(sinfo->open);
+        }
+        kline_info_merge(kinfo, sinfo);
+    }
+    
+    for (time_t timestamp = start_min; timestamp < now; timestamp += 60) {
+        dict_entry *entry = dict_find(info->min, &timestamp);
+        if (!entry)
+            continue;
+        struct kline_info *sinfo = entry->val;
+        if (kinfo == NULL) {
+            kinfo = kline_info_new(sinfo->open);
+        }
+        kline_info_merge(kinfo, sinfo);
+    }
+    
+    if (kinfo == NULL)
+        kinfo = kline_info_new(mpd_zero);
+    strcat(marketstock,"/");
+    strcat(marketstock,marketmoney);
+    
+    json_t *result = json_object();
+    json_object_set_new(result, "market", json_string(market));
+    json_object_set_new(result, "marketsplit", json_string(marketstock));
+    json_object_set_new(result, "period", json_integer(period));
+    json_object_set_new_mpd(result, "last", info->last);
+    json_object_set_new_mpd(result, "open", kinfo->open);
+    json_object_set_new_mpd(result, "close", kinfo->close);
+    json_object_set_new_mpd(result, "high", kinfo->high);
+    json_object_set_new_mpd(result, "low", kinfo->low);
+    json_object_set_new_mpd(result, "volume", kinfo->volume);
+    json_object_set_new_mpd(result, "deal", kinfo->deal);
+    
+    kline_info_free(kinfo);
+    
+    return result;
+}
+
+
 json_t *get_market_all_status(int period)
 {
     json_t *r = send_market_list_req();
@@ -994,7 +1056,9 @@ json_t *get_market_all_status(int period)
     for (size_t i = 0; i < json_array_size(r); ++i) {
         json_t *item = json_array_get(r, i);
         const char *market = json_string_value(json_object_get(item, "name"));
-        json_t *marketstatus = get_market_status(market, period);
+	const char *marketstock = json_string_value(json_object_get(item, "stock"));
+	const char *marketmoney = json_string_value(json_object_get(item, "money"));
+        json_t *marketstatus = get_market_status_all(market,marketstock,marketmoney, period);
         json_array_append_new(result, marketstatus);
     }    
 

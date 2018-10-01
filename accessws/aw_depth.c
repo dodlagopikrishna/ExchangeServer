@@ -250,12 +250,16 @@ static int on_market_depth_reply(struct state_data *state, json_t *result)
     json_incref(result);
 
     time_t now = time(NULL);
-    if (now - val->last_clean >= CLEAN_INTERVAL) {
-        val->last_clean = now;
-        broadcast_update(state->key.market, val->sessions, true, result);
-    } else {
-        broadcast_update(state->key.market, val->sessions, false, diff);
-    }
+
+    val->last_clean = now;
+    broadcast_update(state->key.market, val->sessions, true, result);
+
+    // if (now - val->last_clean >= CLEAN_INTERVAL) {
+    //     val->last_clean = now;
+    //     broadcast_update(state->key.market, val->sessions, true, result);
+    // } else {
+    //     broadcast_update(state->key.market, val->sessions, false, diff);
+    // }
     json_decref(diff);
 
     return 0;

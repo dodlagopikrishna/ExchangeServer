@@ -1024,12 +1024,14 @@ json_t *get_market_status_all(const char *market,const char *marketstock,const c
     
     if (kinfo == NULL)
         kinfo = kline_info_new(mpd_zero);
-    strcat(marketstock,"/");
-    strcat(marketstock,marketmoney);
+
+    char *marketsplit =  strcat(marketsplit,marketstock);
+    strcat(marketsplit,"/");
+    strcat(marketsplit,marketmoney);
     
     json_t *result = json_object();
     json_object_set_new(result, "market", json_string(market));
-    json_object_set_new(result, "marketsplit", json_string(marketstock));
+    json_object_set_new(result, "marketsplit", json_string(marketsplit));
     json_object_set_new(result, "period", json_integer(period));
     json_object_set_new_mpd(result, "last", info->last);
     json_object_set_new_mpd(result, "open", kinfo->open);

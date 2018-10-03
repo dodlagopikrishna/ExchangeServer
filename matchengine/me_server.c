@@ -1121,6 +1121,8 @@ static int on_cmd_market_add(nw_ses *ses, rpc_pkg *pkg, json_t *params)
 
     add_market(market_name, stock_name, stock_prec, money_name, money_prec, fee_prec, min_amount);
     
+    init_market();
+    
     return reply_result(ses, pkg, NULL);
 }
 

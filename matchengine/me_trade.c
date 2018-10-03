@@ -60,3 +60,18 @@ market_t *get_market(const char *name)
     return NULL;
 }
 
+int init_market(void)
+{
+    for (size_t i = 0; i < settings.market_num; ++i) {
+        market_t *m = get_market(settings.markets[i].name);
+        if (m == NULL)
+        {
+            market_t *m = market_create(&settings.markets[i]);
+            if (m == NULL) {
+                return -__LINE__;
+            }
+            dict_add(dict_market, settings.markets[i].name, m);
+        }
+    }
+    return 0;
+}

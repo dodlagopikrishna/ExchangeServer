@@ -880,7 +880,7 @@ static int64_t get_message_offset(void)
 int init_message(void)
 {
     int ret;
-    redis = redis_sentinel_create(&settings.redis);
+    redis = redis_sentinel_create(&settings.redis);/*  */
     if (redis == NULL)
         return -__LINE__;
     ret = init_market();
@@ -1024,11 +1024,10 @@ json_t *get_market_status_all(const char *market,const char *marketstock,const c
     
     if (kinfo == NULL)
         kinfo = kline_info_new(mpd_zero);
-
-    char *marketsplit =  strcat(marketsplit,marketstock);
-    strcat(marketsplit,"/");
-    strcat(marketsplit,marketmoney);
     
+    sds marketsplit = sdsempty();
+    marketsplit = sdscatprintf(marketsplit, "%s/%s", marketstock, marketmoney);
+
     json_t *result = json_object();
     json_object_set_new(result, "market", json_string(market));
     json_object_set_new(result, "marketsplit", json_string(marketsplit));
@@ -1042,10 +1041,9 @@ json_t *get_market_status_all(const char *market,const char *marketstock,const c
     json_object_set_new_mpd(result, "deal", kinfo->deal);
     
     kline_info_free(kinfo);
-    
+    sdsfree(marketsplit);
     return result;
 }
-
 
 json_t *get_market_all_status(int period)
 {
@@ -1058,8 +1056,9 @@ json_t *get_market_all_status(int period)
     for (size_t i = 0; i < json_array_size(r); ++i) {
         json_t *item = json_array_get(r, i);
         const char *market = json_string_value(json_object_get(item, "name"));
-	const char *marketstock = json_string_value(json_object_get(item, "stock"));
-	const char *marketmoney = json_string_value(json_object_get(item, "money"));
+	    const char *marketstock = json_string_value(json_object_get(item, "stock"));
+	    const char *marketmoney = json_string_value(json_object_get(item, "money"));
+        log_debug("market : %s , marketstock : %s , marketmoney : %s ",market,marketstock,marketmoney);
         json_t *marketstatus = get_market_status_all(market,marketstock,marketmoney, period);
         json_array_append_new(result, marketstatus);
     }    

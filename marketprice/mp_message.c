@@ -880,7 +880,7 @@ static int64_t get_message_offset(void)
 int init_message(void)
 {
     int ret;
-    redis = redis_sentinel_create(&settings.redis);/*  */
+    redis = redis_sentinel_create(&settings.redis);
     if (redis == NULL)
         return -__LINE__;
     ret = init_market();
@@ -1058,7 +1058,6 @@ json_t *get_market_all_status(int period)
         const char *market = json_string_value(json_object_get(item, "name"));
 	    const char *marketstock = json_string_value(json_object_get(item, "stock"));
 	    const char *marketmoney = json_string_value(json_object_get(item, "money"));
-        log_debug("market : %s , marketstock : %s , marketmoney : %s ",market,marketstock,marketmoney);
         json_t *marketstatus = get_market_status_all(market,marketstock,marketmoney, period);
         json_array_append_new(result, marketstatus);
     }    
